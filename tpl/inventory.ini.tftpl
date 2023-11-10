@@ -1,0 +1,35 @@
+## Configure 'ip' variable to bind kubernetes services on a
+## different ip than the default iface
+[all]
+%{ for i, node in masters ~}
+master${i} ansible_host=${node.main_ip} ip=${node.internal_ip}
+%{ endfor ~}
+%{ for i, node in workers ~}
+worker${i} ansible_host=${node.main_ip} ip=${node.internal_ip}
+%{ endfor ~}
+
+## configure a bastion host if your nodes are not directly reachable
+# [bastion]
+# bastion ansible_host=x.x.x.x ansible_user=some_user
+
+[kube_control_plane]
+%{ for i, node in masters ~}
+master${i}
+%{ endfor ~}
+
+[etcd]
+%{ for host in etcd_nodes ~}
+${host}
+%{ endfor ~}
+
+[kube_node]
+%{ for i, node in workers ~}
+node${i}
+%{ endfor ~}
+
+[calico_rr]
+
+[k8s_cluster:children]
+kube_control_plane
+kube_node
+calico_rr
